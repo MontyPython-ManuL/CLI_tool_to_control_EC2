@@ -6,13 +6,13 @@ class EC2Service:
     def __init__(self, ec2_client):
         self.ec2 = ec2_client
 
-    def start_instances(self, image_id, instance_type, key_name, security_group, subnet_id, count=1):
+    def start_instances(self, image_id, instance_type, key_name, security_group_id, subnet_id, count=1):
         """Start EC2 instances"""
         instances = self.ec2.run_instances(
             ImageId=image_id,
             InstanceType=instance_type,
             KeyName=key_name,
-            SecurityGroupIds=[security_group],
+            SecurityGroupIds=[security_group_id],
             SubnetId=subnet_id,
             MaxCount=count,
             MinCount=1
@@ -49,8 +49,10 @@ class EC2Service:
 
 
 class EC2Client:
-    def __init__(self):
-        self.ec2_manager = EC2Service(boto3.client('ec2'))
+    def __init__(self, access_key_id, secret_access_key):
+        self.ec2_manager = EC2Service(boto3.client(
+            'ec2', aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
+        )
         self.count = None
         self.image_id = None
         self.instance_type = None
@@ -63,7 +65,7 @@ class EC2Client:
     @click.pass_context
     def cli(ctx):
         """Command line interface for EC2 management"""
-        ctx.obj = EC2Client()
+        ctx.obj = EC2Client(access_key_id='<your_aws_access_key_id>', secret_access_key='<your_aws_secret_access_key>')
 
     @cli.command()
     @click.option('--count', default=1, help='Number of instances to start')
@@ -73,20 +75,20 @@ class EC2Client:
     @click.option('--security-group', required=True, help='Security group ID')
     @click.option('--subnet-id', required=True, help='Subnet ID')
     @click.pass_obj
-    def start_instances(self, obj, count, image_id, instance_type, key_name, security_group, subnet_id):
+    def start_instances(self, obj, count, image_id, instance_type, key_name, security_group_id, subnet_id):
         obj.count = count
         obj.image_id = image_id
         obj.instance_type = instance_type
-        obj.security_group = security_group
+        obj.security_group = security_group_id
         obj.subnet_id = subnet_id
         """Start EC2 instances"""
-        obj.ec2_manager.start_instances(image_id, instance_type, key_name, security_group, subnet_id, count)
+        obj.ec2_service.start_instances(image_id, instance_type, key_name, security_group_id, subnet_id, count)
 
     @cli.command()
     @click.option('--instance-id', required=True, help='EC2 instance ID')
     @click.pass_obj
-    def start_existing_instance(self, obj, ec2_manager, instance_id):
-        obj.ec2_manager = ec2_manager
+    def start_existing_instance(self, obj, ec2_service, instance_id):
+        obj.ec2_service = ec2_service
         obj.instance_id = instance_id
         """Start an existing EC2 instance"""
         obj.ec2_manager.start_existing_instance(instance_id)
@@ -96,11 +98,10 @@ class EC2Client:
     @click.pass_obj
     def stop_instance(self, obj, instance_id):
         """Stop an EC2 instance"""
-        obj.ec2_manager.stop_instances(instance_id)
+        obj.ec2_service.stop_instances(instance_id)
 
     @cli.command()
     @click.pass_obj
     def list_instances(self, obj):
         """List all EC2 instances"""
-        obj.ec2_manager.list_instances()
-
+        obj.ec2_service.list_instances()
