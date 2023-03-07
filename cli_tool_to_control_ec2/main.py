@@ -1,20 +1,21 @@
 import boto3
 import click
+import sys
 
 
 class EC2Service:
     def __init__(self, ec2_client):
         self.ec2 = ec2_client
 
-    def start_instances(self, image_id, instance_type, key_name, security_group_id, subnet_id, count=1):
+    def start_instances(self, instance_config):
         """Start EC2 instances"""
         instances = self.ec2.run_instances(
-            ImageId=image_id,
-            InstanceType=instance_type,
-            KeyName=key_name,
-            SecurityGroupIds=[security_group_id],
-            SubnetId=subnet_id,
-            MaxCount=count,
+            ImageId=instance_config['image_id'],
+            InstanceType=instance_config['instance_type'],
+            KeyName=instance_config['key_name'],
+            SecurityGroupIds=[instance_config['security_group_id']],
+            SubnetId=instance_config['subnet_id'],
+            MaxCount=instance_config['count'],
             MinCount=1
         )
 
@@ -50,16 +51,13 @@ class EC2Service:
 
 class EC2Client:
     def __init__(self, access_key_id, secret_access_key):
-        self.ec2_manager = EC2Service(boto3.client(
-            'ec2', aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
-        )
-        self.count = None
-        self.image_id = None
-        self.instance_type = None
-        self.instance_id = None
-        self.key_name = None
-        self.security_group = None
-        self.subnet_id = None
+        try:
+            self.ec2 = boto3.client(
+                'ec2', aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
+            self.ec2_service = EC2Service(self.ec2)
+        except Exception as e:
+            print(f"Error: {e}")
+            sys.exit(1)
 
     @click.group()
     @click.pass_context
@@ -75,33 +73,41 @@ class EC2Client:
     @click.option('--security-group', required=True, help='Security group ID')
     @click.option('--subnet-id', required=True, help='Subnet ID')
     @click.pass_obj
-    def start_instances(self, obj, count, image_id, instance_type, key_name, security_group_id, subnet_id):
-        obj.count = count
-        obj.image_id = image_id
-        obj.instance_type = instance_type
-        obj.security_group = security_group_id
-        obj.subnet_id = subnet_id
-        """Start EC2 instances"""
-        obj.ec2_service.start_instances(image_id, instance_type, key_name, security_group_id, subnet_id, count)
+    def start_instances(self, instance_config):
+        try:
+            self.ec2_service.start_instances(instance_config)
+        except Exception as e:
+            print(f"Something is wrong with the input parameters.: {e}")
+            sys.exit(1)
 
     @cli.command()
     @click.option('--instance-id', required=True, help='EC2 instance ID')
     @click.pass_obj
-    def start_existing_instance(self, obj, ec2_service, instance_id):
-        obj.ec2_service = ec2_service
-        obj.instance_id = instance_id
+    def start_existing_instance(self, instance_id):
         """Start an existing EC2 instance"""
-        obj.ec2_manager.start_existing_instance(instance_id)
+        try:
+            self.ec2_service.start_existing_instance(instance_id)
+        except Exception as e:
+            print(f"Something wrong Error: {e}")
+            sys.exit(1)
 
     @cli.command()
     @click.option('--instance-id', required=True, help='EC2 instance ID')
     @click.pass_obj
-    def stop_instance(self, obj, instance_id):
+    def stop_instance(self, instance_id):
         """Stop an EC2 instance"""
-        obj.ec2_service.stop_instances(instance_id)
+        try:
+            self.ec2_service.stop_instances(instance_id)
+        except Exception as e:
+            print(f"Something wrong Error: {e}")
+            sys.exit(1)
 
     @cli.command()
     @click.pass_obj
-    def list_instances(self, obj):
+    def list_instances(self):
         """List all EC2 instances"""
-        obj.ec2_service.list_instances()
+        try:
+            self.ec2_service.list_instances()
+        except Exception as e:
+            print(f"Something wrong Error: {e}")
+            sys.exit(1)
