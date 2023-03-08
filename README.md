@@ -1,40 +1,63 @@
-# EC2 CLI Tool
+# EC2 Control CLI Tool
 
-EC2 CLI Tool is a command-line tool that allows you to manage Amazon EC2 instances through a command-line interface. This tool provides the ability to launch, stop, and list EC2 instances.
-## Installation
-#### Before using EC2 CLI Tool, you need to install the following dependencies:
-
-* boto3
-* click
-* botocore
-
-## Usage
-
-#### EC2 CLI Tool consists of the following commands:
-
-* `start-instances`: launches new EC2 instances
-* `start-existing-instance`: launches an existing EC2 instance
-* `stop-instance`: stops an EC2 instance
-* `list-instances`: lists all EC2 instances
-
-Each command has its own parameters that can be passed through the command-line interface.
-The `start-instances` command is used to launch new EC2 instances. Here's an example of using the command:
-```python
-python main.py start-instances --count 1 --image-id ami-xxxxxxxx --instance-type t2.micro --key-name my-key-pair --security-group sg-xxxxxxxx --subnet-id subnet-xxxxxxxx
+This is a command-line interface tool built in Python to control Amazon Elastic Compute Cloud (EC2) instances. It provides various commands to start, stop, and list EC2 instances. It uses the boto3 library to interact with the AWS API.## Installation
+### Getting Started:
+1. Clone this repository using the following command:
+```bash
+git clone https://github.com/MontyPython-ManuL/CLI_tool_to_control_EC2.git
 ```
 
-The `start-existing-instance` command is used to launch an existing EC2 instance. Here's an example of using the command:
-```python
-python main.py start-existing-instance --instance-id i-xxxxxxxx
+2. Navigate to the project directory:
+```bash
+cd CLI_tool_to_control_EC2
 ```
-The `stop-instance` command is used to stop an EC2 instance. Here's an example of using the command:
-```python
-python main.py stop-instance --instance-id i-xxxxxxxx
+3. Configure the AWS credentials using aws configure or by setting the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.:
+4. Run the tool using the following command
 ```
-The `list-instances` command is used to list all EC2 instances. Here's an example of using the command:
-```python
-python main.py list-instances
+python ec2_control.py [OPTIONS] COMMAND [ARGS]...
 ```
+## Commands
+
+#### This tool provides the following commands:
+### `start-instance`
+
+Starts an EC2 instance.
+```
+python ec2_control.py start-instance --instance-id INSTANCE_ID
+```
+Options:
+* `--instance-id`: Required. The ID of the instance to start.
+### `stop-instance`
+
+Stops an EC2 instance.
+```
+python ec2_control.py stop-instance --instance-id INSTANCE_ID
+```
+Options:
+* `--instance-id`: Required. The ID of the instance to stop.
+
+### `list-instances`
+
+Lists all EC2 instances.
+```
+python ec2_control.py list-instances
+```
+
+## Examples
+1. Start an EC2 instance:
+```
+python ec2_control.py start-instance --instance-id i-0123456789abcdef0
+```
+2. Stop an EC2 instance:
+```
+python ec2_control.py stop-instance --instance-id i-0123456789abcdef0
+```
+3. List all EC2 instances:
+```
+python ec2_control.py list-instances
+```
+### Contributing
+Contributions are welcome! Please open an issue or submit a pull request.
 
 #### Author 
 
