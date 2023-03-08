@@ -6,12 +6,7 @@ EC2 CLI Tool is a command-line tool that allows you to manage Amazon EC2 instanc
 
 * boto3
 * click
-
-You can do this using the following command::
-
-```python
-pip install boto3 click
-```
+* botocore
 
 ## Usage
 
