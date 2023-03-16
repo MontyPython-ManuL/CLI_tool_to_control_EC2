@@ -47,13 +47,13 @@ class EC2Management:
             logging.error(f"Instance state change failed to complete within the allotted time. Error: {e}")
             sys.exit(1)
         except botocore.exceptions.ParamValidationError as e:
-            logging.error(f"Invalid parameters provided for stopping the instance. Error: {e}")
+            logging.error(f"Invalid parameters provided for starting the instance. Error: {e}")
             sys.exit(1)
         except botocore.exceptions.EndpointConnectionError as e:
-            logging.error(f"Unable to connect to the service endpoint to stop the instance. Error: {e}")
+            logging.error(f"Unable to connect to the service endpoint to start the instance. Error: {e}")
             sys.exit(1)
         except botocore.exceptions.ClientError as e:
-            logging.error(f"An error occurred while stopping the instance. Error: {e}")
+            logging.error(f"An error occurred while starting the instance. Error: {e}")
             sys.exit(1)
 
     def stop_instance(self):
@@ -80,13 +80,13 @@ class EC2Management:
             logging.error(f"Instance state change failed to complete within the allotted time. Error: {e}")
             sys.exit(1)
         except botocore.exceptions.ParamValidationError as e:
-            logging.error(f"Invalid parameters provided for stopping the instance. Error: {e}")
+            logging.error(f"Invalid parameters provided for get list the instance. Error: {e}")
             sys.exit(1)
         except botocore.exceptions.EndpointConnectionError as e:
-            logging.error(f"Unable to connect to the service endpoint to stop the instance. Error: {e}")
+            logging.error(f"Unable to connect to the service endpoint to list the instance. Error: {e}")
             sys.exit(1)
         except botocore.exceptions.ClientError as e:
-            logging.error(f"An error occurred while stopping the instance. Error: {e}")
+            logging.error(f"An error occurred while getting list the instance. Error: {e}")
             sys.exit(1)
 
 
