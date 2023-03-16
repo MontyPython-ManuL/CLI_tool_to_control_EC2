@@ -39,6 +39,12 @@ Lists all EC2 instances.
 instance-id: i-***********
 choose action [STOP, START, LIST]: LIST
 ```
+## Unittest
+
+![](doc/img/img_1.png)
+
+## Coverage
+![](doc/img/img_2.png)
 
 ### Contributing
 Contributions are welcome! Please open an issue or submit a pull request.

@@ -17,12 +17,14 @@ class EC2Service:
             DryRun=False
         )
         click.echo(f"Instance {self.instance_id} started with response {response['ResponseMetadata']['HTTPStatusCode']}.")
+        return f"Instance {self.instance_id} started with response {response['ResponseMetadata']['HTTPStatusCode']}."
 
     def stop_instance(self):
         """Stop EC2 instances"""
         response = self.ec2.stop_instances(InstanceIds=[self.instance_id])
 
         click.echo(f"Instance {self.instance_id} stopped with response {response['ResponseMetadata']['HTTPStatusCode']}.")
+        return f"Instance {self.instance_id} stopped with response {response['ResponseMetadata']['HTTPStatusCode']}."
 
     def list_instances(self):
         """List all EC2 instances"""
@@ -30,8 +32,8 @@ class EC2Service:
 
         for reservation in response['Reservations']:
             for instance in reservation['Instances']:
-                print(f"Instance ID: {instance['InstanceId']}")
-                print(f"Instance state: {instance['State']['Name']}")
+                click.echo(f"Instance ID: {instance['InstanceId']}\nInstance state: {instance['State']['Name']}")
+        return "List_instances already downloaded"
 
 
 class EC2Management:
