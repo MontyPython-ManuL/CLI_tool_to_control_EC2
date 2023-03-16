@@ -50,7 +50,8 @@ python ec2_control.py start-instance --instance-id i-0123456789abcdef0
 ```
 2. Stop an EC2 instance:
 ```
-python ec2_control.py stop-instance --instance-id i-0123456789abcdef0
+python cli_tool_to_control_ec2/main.py stop_instance --instance-id * --region_name * --aws_access_key_id * 
+--aws_secret_access_key *
 ```
 3. List all EC2 instances:
 ```

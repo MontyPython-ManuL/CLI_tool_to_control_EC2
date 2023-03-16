@@ -2,40 +2,27 @@ import botocore.exceptions
 import boto3
 import click
 import sys
+import logging
 
 
 class EC2Service:
-    def __init__(self, ec2_client):
-        self.ec2 = ec2_client
+    def __init__(self, ec2, instance_id):
+        self.ec2 = ec2
+        self.instance_id = instance_id
 
-    def start_multiple_instances(self, instance_config):
-        """Start EC2 instances"""
-        instances = self.ec2.run_instances(
-            ImageId=instance_config['image_id'],
-            InstanceType=instance_config['instance_type'],
-            KeyName=instance_config['key_name'],
-            SecurityGroupIds=[instance_config['security_group_id']],
-            SubnetId=instance_config['subnet_id'],
-            MaxCount=instance_config['count'],
-            MinCount=1
-        )
-
-        for instance in instances['Instances']:
-            print(f"Instance {instance['InstanceId']} started.")
-
-    def start_existing_instance(self, instance_id):
+    def start_existing_instance(self):
         """Start an existing EC2 instance"""
         response = self.ec2.start_instances(
-            InstanceIds=[instance_id],
+            InstanceIds=[self.instance_id],
             DryRun=False
         )
-        print(f"Instance {instance_id} started with response {response['ResponseMetadata']['HTTPStatusCode']}.")
+        click.echo(f"Instance {self.instance_id} started with response {response['ResponseMetadata']['HTTPStatusCode']}.")
 
-    def stop_instance(self, instance_id):
+    def stop_instance(self):
         """Stop EC2 instances"""
-        response = self.ec2.stop_instances(InstanceIds=[instance_id])
+        response = self.ec2.stop_instances(InstanceIds=[self.instance_id])
 
-        print(f"Instance {instance_id} stopped with response {response['ResponseMetadata']['HTTPStatusCode']}.")
+        click.echo(f"Instance {self.instance_id} stopped with response {response['ResponseMetadata']['HTTPStatusCode']}.")
 
     def list_instances(self):
         """List all EC2 instances"""
@@ -47,72 +34,53 @@ class EC2Service:
                 print(f"Instance state: {instance['State']['Name']}")
 
 
-@click.group()
-@click.option('--profile', '-p', default='default', help="AWS profile to use.")
-@click.pass_context
-def cli(ctx, profile):
-    """AWS EC2 instance management"""
-    session = boto3.Session(profile_name=profile)
-    ec2_client = session.client('ec2')
-
-    ec2_service = EC2Service(ec2_client)
-    ctx.obj = ec2_service
-
-
-@cli.command()
-@click.option('--image-id', '-i', required=True, help="EC2 instance AMI ID")
-@click.option('--instance-type', '-t', required=True, help="EC2 instance type")
-@click.option('--key-name', '-k', required=True, help="Key pair name")
-@click.option('--security-group-id', '-sg', required=True, help="Security group ID")
-@click.option('--subnet-id', '-sn', required=True, help="Subnet ID")
-@click.option('--count', '-c', default=1, help="Number of instances to start")
-@click.pass_context
-def start_instances(ctx, image_id, instance_type, key_name, security_group_id, subnet_id, count):
-    """Start EC2 instances"""
-    instance_config = {
-        'image_id': image_id,
-        'instance_type': instance_type,
-        'key_name': key_name,
-        'security_group_id': security_group_id,
-        'subnet_id': subnet_id,
-        'count': count
-    }
-
-    ec2_service = ctx.obj
-    ec2_service.start_multiple_instances(instance_config)
-
-
-@cli.command()
-@click.argument('instance-id')
-@click.pass_obj
-def start_existing_instance(ec2_service, instance_id):
+def start_existing_instance(ec2, instance_id):
     """Start an existing EC2 instance"""
-    response = ec2_service.ec2.start_instances(
-        InstanceIds=[instance_id],
-        DryRun=False
-    )
-    print(f"Instance {instance_id} started with response {response['ResponseMetadata']['HTTPStatusCode']}.")
+    EC2Service(ec2, instance_id).start_existing_instance()
 
 
-@cli.command()
-@click.option('--instance-id', required=True, help='EC2 instance ID')
-@click.pass_obj
-def stop_instance(self, instance_id):
-    """Stop an EC2 instance"""
-
+def stop_instance(ec2, instance_id):
     try:
-        self.ec2_service.stop_instance(instance_id)
+        EC2Service(ec2, instance_id).stop_instance()
+        click.echo('EC2 instance has been successfully stopped.')
     except botocore.exceptions.WaiterError as e:
-        print(f"Instance state change failed to complete within the allotted time. Error: {e}")
+        logging.error(f"Instance state change failed to complete within the allotted time. Error: {e}")
         sys.exit(1)
     except botocore.exceptions.ParamValidationError as e:
-        print(f"Invalid parameters provided for stopping the instance. Error: {e}")
+        logging.error(f"Invalid parameters provided for stopping the instance. Error: {e}")
         sys.exit(1)
     except botocore.exceptions.EndpointConnectionError as e:
-        print(f"Unable to connect to the service endpoint to stop the instance. Error: {e}")
+        logging.error(f"Unable to connect to the service endpoint to stop the instance. Error: {e}")
         sys.exit(1)
     except botocore.exceptions.ClientError as e:
-        print(f"An error occurred while stopping the instance. Error: {e}")
+        logging.error(f"An error occurred while stopping the instance. Error: {e}")
         sys.exit(1)
-    else:
-        print(f"Instance {instance_id} stopped successfully.")
+
+
+def list_instances(ec2, instance_id):
+    """List all EC2 instances"""
+    EC2Service(ec2, instance_id).list_instances()
+    click.echo('Instance list:')
+
+
+@click.command()
+@click.option('--instance_id', prompt='input instance-id', required=True, help='EC2 instance ID')
+@click.option('--action', prompt='choose action [STOP, START, LIST]', required=True, help='EC2 instance ID')
+def auth(instance_id, action):
+    session = boto3.Session()
+    aws_access_key_id = session.get_credentials().access_key
+    aws_secret_access_key = session.get_credentials().secret_key
+    aws_region = session.region_name
+
+    ec2 = boto3.client('ec2', region_name=aws_region, aws_access_key_id=aws_access_key_id,
+                       aws_secret_access_key=aws_secret_access_key)
+    if action == 'STOP':
+        stop_instance(ec2, instance_id)
+    elif action == 'START':
+        start_existing_instance(ec2, instance_id)
+    elif action == 'LIST':
+        list_instances(ec2, instance_id)
+
+
+if __name__ == '__main__':
+    auth()
