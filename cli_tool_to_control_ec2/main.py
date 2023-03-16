@@ -34,39 +34,66 @@ class EC2Service:
                 print(f"Instance state: {instance['State']['Name']}")
 
 
-def start_existing_instance(ec2, instance_id):
-    """Start an existing EC2 instance"""
-    EC2Service(ec2, instance_id).start_existing_instance()
+class EC2Management:
+    def __init__(self, ec2, instance_id):
+        self.ec2 = ec2
+        self.instance_id = instance_id
 
+    def start_existing_instance(self):
+        """Start an existing EC2 instance"""
+        try:
+            EC2Service(self.ec2, self.instance_id).start_existing_instance()
+        except botocore.exceptions.WaiterError as e:
+            logging.error(f"Instance state change failed to complete within the allotted time. Error: {e}")
+            sys.exit(1)
+        except botocore.exceptions.ParamValidationError as e:
+            logging.error(f"Invalid parameters provided for stopping the instance. Error: {e}")
+            sys.exit(1)
+        except botocore.exceptions.EndpointConnectionError as e:
+            logging.error(f"Unable to connect to the service endpoint to stop the instance. Error: {e}")
+            sys.exit(1)
+        except botocore.exceptions.ClientError as e:
+            logging.error(f"An error occurred while stopping the instance. Error: {e}")
+            sys.exit(1)
 
-def stop_instance(ec2, instance_id):
-    try:
-        EC2Service(ec2, instance_id).stop_instance()
-        click.echo('EC2 instance has been successfully stopped.')
-    except botocore.exceptions.WaiterError as e:
-        logging.error(f"Instance state change failed to complete within the allotted time. Error: {e}")
-        sys.exit(1)
-    except botocore.exceptions.ParamValidationError as e:
-        logging.error(f"Invalid parameters provided for stopping the instance. Error: {e}")
-        sys.exit(1)
-    except botocore.exceptions.EndpointConnectionError as e:
-        logging.error(f"Unable to connect to the service endpoint to stop the instance. Error: {e}")
-        sys.exit(1)
-    except botocore.exceptions.ClientError as e:
-        logging.error(f"An error occurred while stopping the instance. Error: {e}")
-        sys.exit(1)
+    def stop_instance(self):
+        try:
+            EC2Service(self.ec2, self.instance_id).stop_instance()
+        except botocore.exceptions.WaiterError as e:
+            logging.error(f"Instance state change failed to complete within the allotted time. Error: {e}")
+            sys.exit(1)
+        except botocore.exceptions.ParamValidationError as e:
+            logging.error(f"Invalid parameters provided for stopping the instance. Error: {e}")
+            sys.exit(1)
+        except botocore.exceptions.EndpointConnectionError as e:
+            logging.error(f"Unable to connect to the service endpoint to stop the instance. Error: {e}")
+            sys.exit(1)
+        except botocore.exceptions.ClientError as e:
+            logging.error(f"An error occurred while stopping the instance. Error: {e}")
+            sys.exit(1)
 
-
-def list_instances(ec2, instance_id):
-    """List all EC2 instances"""
-    EC2Service(ec2, instance_id).list_instances()
-    click.echo('Instance list:')
+    def list_instances(self):
+        """List all EC2 instances"""
+        try:
+            EC2Service(self.ec2, self.instance_id).list_instances()
+        except botocore.exceptions.WaiterError as e:
+            logging.error(f"Instance state change failed to complete within the allotted time. Error: {e}")
+            sys.exit(1)
+        except botocore.exceptions.ParamValidationError as e:
+            logging.error(f"Invalid parameters provided for stopping the instance. Error: {e}")
+            sys.exit(1)
+        except botocore.exceptions.EndpointConnectionError as e:
+            logging.error(f"Unable to connect to the service endpoint to stop the instance. Error: {e}")
+            sys.exit(1)
+        except botocore.exceptions.ClientError as e:
+            logging.error(f"An error occurred while stopping the instance. Error: {e}")
+            sys.exit(1)
 
 
 @click.command()
 @click.option('--instance_id', prompt='input instance-id', required=True, help='EC2 instance ID')
 @click.option('--action', prompt='choose action [STOP, START, LIST]', required=True, help='EC2 instance ID')
-def auth(instance_id, action):
+def manage_ec2_instance(instance_id, action):
     session = boto3.Session()
     aws_access_key_id = session.get_credentials().access_key
     aws_secret_access_key = session.get_credentials().secret_key
@@ -75,12 +102,12 @@ def auth(instance_id, action):
     ec2 = boto3.client('ec2', region_name=aws_region, aws_access_key_id=aws_access_key_id,
                        aws_secret_access_key=aws_secret_access_key)
     if action == 'STOP':
-        stop_instance(ec2, instance_id)
+        EC2Management(ec2, instance_id).stop_instance()
     elif action == 'START':
-        start_existing_instance(ec2, instance_id)
+        EC2Management(ec2, instance_id).start_existing_instance()
     elif action == 'LIST':
-        list_instances(ec2, instance_id)
+        EC2Management(ec2, instance_id).list_instances()
 
 
 if __name__ == '__main__':
-    auth()
+    manage_ec2_instance()

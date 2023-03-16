@@ -9,54 +9,37 @@ git clone https://github.com/MontyPython-ManuL/CLI_tool_to_control_EC2.git
 
 2. Navigate to the project directory:
 ```bash
-cd CLI_tool_to_control_EC2
+cd cli_tool_to_control_ec2
 ```
-3. Configure the AWS credentials using aws configure or by setting the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.:
+3. Configure the AWS credentials using aws configure or by setting the environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `region` and `instance-id`:
+![Иллюстрация к проекту](doc/img/image_2023-03-16_15-14-34.png)
 4. Run the tool using the following command
 ```
-python ec2_control.py [OPTIONS] COMMAND [ARGS]...
+python main.py
 ```
 ## Commands
 
 #### This tool provides the following commands:
-### `start-instance`
+![Иллюстрация к проекту](doc/img/img.png)
 
 Starts an EC2 instance.
 ```
-python ec2_control.py start-instance --instance-id INSTANCE_ID
+instance-id: i-***********
+choose action [STOP, START, LIST]: START
 ```
-Options:
-* `--instance-id`: Required. The ID of the instance to start.
-### `stop-instance`
 
 Stops an EC2 instance.
 ```
-python ec2_control.py stop-instance --instance-id INSTANCE_ID
+instance-id: i-***********
+choose action [STOP, START, LIST]: STOP
 ```
-Options:
-* `--instance-id`: Required. The ID of the instance to stop.
-
-### `list-instances`
 
 Lists all EC2 instances.
 ```
-python ec2_control.py list-instances
+instance-id: i-***********
+choose action [STOP, START, LIST]: LIST
 ```
 
-## Examples
-1. Start an EC2 instance:
-```
-python ec2_control.py start-instance --instance-id i-0123456789abcdef0
-```
-2. Stop an EC2 instance:
-```
-python cli_tool_to_control_ec2/main.py stop_instance --instance-id * --region_name * --aws_access_key_id * 
---aws_secret_access_key *
-```
-3. List all EC2 instances:
-```
-python ec2_control.py list-instances
-```
 ### Contributing
 Contributions are welcome! Please open an issue or submit a pull request.
 
