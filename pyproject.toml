@@ -14,5 +14,9 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 boto3 = "^1.18.3"
-moto = "^4.1.4"
 botocore = "^1.29.84"
+coverage = "^7.2.2"
+pytest = "^"
+unittest = "^"
+sys = "^"
+logging = "^"
